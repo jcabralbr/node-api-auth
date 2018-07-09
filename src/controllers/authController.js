@@ -14,7 +14,9 @@ router.post('/register', async (req, res) => {
 
         const user = await User.create(req.body);
         user.password = undefined;
-        return res.send({ user });
+        return res.send({ user,
+            token: generateToken({id: user.id})
+        });
     } catch (error) {
         return res.status(400).send({ error: 'Registration failed' });
     }
@@ -34,10 +36,13 @@ router.post('/authenticate', async (req, res) => {
     }
     user.password = undefined;
     
-    const token = jwt.sign({id: user.id}, authConfig.secret, {
+    res.send({user, token: generateToken({id: user.id})});
+});
+
+function generateToken(params = []){
+    return jwt.sign(params, authConfig.secret, {
         expiresIn: 86400
     });
-    res.send({user, token});
-});
+}
 
 module.exports = app => app.use('/auth', router);
